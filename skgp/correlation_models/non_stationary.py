@@ -5,9 +5,9 @@ import numpy as np
 from scipy.special import gamma, kv
 from scipy.stats import expon, norm
 
-from sklearn.gaussian_process.correlation_models import l1_cross_differences
-from sklearn.gaussian_process import GaussianProcess
 from sklearn.cluster import KMeans
+
+from skgp.correlation_models.stationary import l1_cross_differences
 
 MACHINE_EPSILON = np.finfo(np.double).eps
 
@@ -140,6 +140,7 @@ class LocalLengthScalesCorrelation(object):
         theta_gp, theta_l, length_scales, nu = self._parse_theta(theta)
 
         # Train length-scale Gaussian Process
+        from skgp.estimators import GaussianProcess
         self.gp_l = \
             GaussianProcess(corr="matern_1.5",
                             theta0=theta_l).fit(self.X_,
@@ -369,9 +370,9 @@ class ManifoldCorrelation(object):
 
         self.base_corr = base_corr
         if not callable(self.base_corr):
-            if self.base_corr in GaussianProcess._correlation_types:
-                self.base_corr = \
-                    GaussianProcess._correlation_types[self.base_corr]()
+            from skgp.correlation_models import CORRELATION_TYPES
+            if self.base_corr in CORRELATION_TYPES:
+                self.base_corr = CORRELATION_TYPES[self.base_corr]()
             else:
                 raise ValueError("base_corr should be one of %s or callable, "
                                  "%s was given."

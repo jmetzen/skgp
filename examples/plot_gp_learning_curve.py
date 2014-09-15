@@ -38,7 +38,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from sklearn.learning_curve import learning_curve
-from skgp.estimators.gaussian_process import GaussianProcess
+from skgp.estimators import GaussianProcess
 
 np.random.seed(1)
 

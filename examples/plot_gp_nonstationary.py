@@ -25,7 +25,7 @@ print(__doc__)
 
 import numpy as np
 from scipy.special import gamma, kv
-from skgp.estimators.gaussian_process import GaussianProcess
+from skgp.estimators import GaussianProcess
 from skgp.correlation_models.stationary \
     import MACHINE_EPSILON, l1_cross_differences
 from matplotlib import pyplot as pl

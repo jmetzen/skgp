@@ -12,10 +12,11 @@ import numpy as np
 from scipy import linalg, optimize, rand
 
 from sklearn.base import BaseEstimator, RegressorMixin
-from sklearn.utils import array2d, check_random_state, check_arrays
+from sklearn.utils \
+    import check_array, check_random_state, check_consistent_length
 from sklearn.gaussian_process import regression_models as regression
 
-from skgp.correlation_models import stationary as correlation
+from skgp.correlation_models import CORRELATION_TYPES
 
 MACHINE_EPSILON = np.finfo(np.double).eps
 
@@ -182,15 +183,6 @@ class GaussianProcess(BaseEstimator, RegressorMixin):
         'linear': regression.linear,
         'quadratic': regression.quadratic}
 
-    _correlation_types = {
-        'absolute_exponential': correlation.AbsoluteExponential,
-        'squared_exponential': correlation.SquaredExponential,
-        'matern_1.5': correlation.Matern_1_5,
-        'matern_2.5': correlation.Matern_2_5,
-        'generalized_exponential': correlation.GeneralizedExponential,
-        'cubic': correlation.Cubic,
-        'linear': correlation.Linear}
-
     _optimizer_types = [
         'fmin_cobyla',
         'Welch']
@@ -241,12 +233,12 @@ class GaussianProcess(BaseEstimator, RegressorMixin):
         self.random_state = check_random_state(self.random_state)
 
         # Force data to 2D numpy.array
-        X = array2d(X)
+        X = check_array(X)
         y = np.asarray(y)
         self.y_ndim_ = y.ndim
         if y.ndim == 1:
             y = y[:, np.newaxis]
-        X, y = check_arrays(X, y)
+        check_consistent_length(X, y)
 
         # Check shapes of DOE & observations
         n_samples, n_features = X.shape
@@ -388,7 +380,7 @@ class GaussianProcess(BaseEstimator, RegressorMixin):
         """
 
         # Check input shapes
-        X = array2d(X)
+        X = check_array(X)
         n_eval, _ = X.shape
         n_samples, n_features = self.X.shape
         n_samples_y, n_targets = self.y.shape
@@ -793,19 +785,19 @@ class GaussianProcess(BaseEstimator, RegressorMixin):
 
         # Check regression weights if given (Ordinary Kriging)
         if self.beta0 is not None:
-            self.beta0 = array2d(self.beta0)
+            self.beta0 = check_array(self.beta0)
             if self.beta0.shape[1] != 1:
                 # Force to column vector
                 self.beta0 = self.beta0.T
 
         # Check correlation model
         if not callable(self.corr):
-            if self.corr in self._correlation_types:
-                self.corr = self._correlation_types[self.corr]()
+            if self.corr in CORRELATION_TYPES:
+                self.corr = CORRELATION_TYPES[self.corr]()
             else:
                 raise ValueError("corr should be one of %s or callable, "
                                  "%s was given."
-                                 % (self._correlation_types.keys(), self.corr))
+                                 % (self.CORRELATION_TYPES.keys(), self.corr))
 
         # Check storage mode
         if self.storage_mode != 'full' and self.storage_mode != 'light':

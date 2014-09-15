@@ -14,7 +14,7 @@ from abc import ABCMeta, abstractmethod
 
 import numpy as np
 
-from sklearn.utils import array2d
+from sklearn.utils import check_array
 from sklearn.externals.six import with_metaclass
 
 MACHINE_EPSILON = np.finfo(np.double).eps
@@ -41,7 +41,7 @@ def l1_cross_differences(X):
         The indices i and j of the vectors in X associated to the cross-
         distances in D: D[k] = np.abs(X[ij[k, 0]] - Y[ij[k, 1]]).
     """
-    X = array2d(X)
+    X = check_array(X)
     n_samples, n_features = X.shape
     n_nonzero_cross_diff = n_samples * (n_samples - 1) // 2
     ij = np.zeros((n_nonzero_cross_diff, 2), dtype=np.int)
