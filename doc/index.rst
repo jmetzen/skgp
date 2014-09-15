@@ -6,11 +6,15 @@
 Welcome to skgp's documentation!
 ================================
 
+skgp is an extension package for the sklearn (scikit-learn) package which extends sklearn's functionality in the area of Gaussian Processes (GPs). It builds heavily on sklearn's original GP implementation and some of skgp's functionality may be merged back into sklearn at some point in the future. skgp is distributed under the 3-Clause BSD license.
+
 Contents:
+=========
 
 .. toctree::
-   :maxdepth: 2
 
+    features
+    auto_examples/index
 
 
 Indices and tables
