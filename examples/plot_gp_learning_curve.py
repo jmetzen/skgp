@@ -3,7 +3,7 @@
 
 r"""
 ==========================================================
-Gaussian Processes regression: comparing different kernels
+Comparing different variants of squared exponential kernel
 ==========================================================
 
 Three variants of the squared exponential covariance function are compared:
@@ -22,6 +22,7 @@ dimensions are correlated, which can be exploited by FAD.
 
 The hyperparameters are optimized within
 .. math::
+
    \theta_i \in [1e-4, 1e2]
 
 See Rasmussen and Williams 2006, p107 for details regarding the different
