@@ -188,7 +188,7 @@ class BayesianGaussianProcess(BaseEstimator, RegressorMixin):
         odict = self.__dict__.copy()  # copy the dict since we change it
         odict.pop("sampler", None)
         # Remove callback functions
-        for gp in odict["gps"]:
+        for gp in odict.get("gps", []):
             if not isinstance(gp.optimizer, basestring):
                 gp.optimizer = "fmin_cobyla"
         if not isinstance(odict["base_gp"].optimizer, basestring):
