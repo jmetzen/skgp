@@ -1,7 +1,9 @@
 # -*- coding: utf-8 -*-
 
 # Author: Vincent Dubourg <vincent.dubourg@gmail.com>
-#         (mostly translation, see implementation details)
+#         (sklearn implementation)
+#         Jan Hendrik Metzen <jhm@informatik.uni-bremen.de>
+#         (adaptations for skgp)
 # Licence: BSD 3 clause
 
 from __future__ import print_function
