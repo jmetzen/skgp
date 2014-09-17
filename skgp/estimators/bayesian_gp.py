@@ -46,6 +46,8 @@ class BayesianGaussianProcess(BaseEstimator, RegressorMixin):
         self.n_burnin = n_burnin
         self.n_sampling_steps = n_sampling_steps
 
+        self.gps = []
+
     def fit(self, X, y):
         """
         The Bayesian Gaussian Process model fitting method.
@@ -91,7 +93,6 @@ class BayesianGaussianProcess(BaseEstimator, RegressorMixin):
         self.sampler.run_mcmc(p0, self.n_sampling_steps)
 
         # Select posterior samples and create clone of GP for these
-        self.gps = []
         self.theta_ = []
         for i in range(self.n_posterior_samples):
             # Select posterior samples
@@ -187,10 +188,4 @@ class BayesianGaussianProcess(BaseEstimator, RegressorMixin):
         """ Return a pickable state for this object """
         odict = self.__dict__.copy()  # copy the dict since we change it
         odict.pop("sampler", None)
-        # Remove callback functions
-        for gp in odict.get("gps", []):
-            if not isinstance(gp.optimizer, basestring):
-                gp.optimizer = "fmin_cobyla"
-        if not isinstance(odict["base_gp"].optimizer, basestring):
-            odict["base_gp"].optimizer = "fmin_cobyla"
         return odict
