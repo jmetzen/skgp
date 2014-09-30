@@ -48,7 +48,7 @@ def setup_package():
             "Programming Language :: Python :: 3",
             "Programming Language :: Python :: 3.3",
         ],
-        requires=["numpy", "scipy", "sklearn"])
+        requires=["numpy", "scipy", "sklearn", "emcee"])
 
     metadata['configuration'] = configuration
 
