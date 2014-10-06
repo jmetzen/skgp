@@ -7,7 +7,7 @@ from scipy.stats import expon, norm
 
 from sklearn.cluster import KMeans
 
-from skgp.correlation_models.stationary import l1_cross_differences
+from .stationary import l1_cross_differences
 
 MACHINE_EPSILON = np.finfo(np.double).eps
 

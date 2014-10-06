@@ -40,11 +40,12 @@ class BayesianGaussianProcess(BaseEstimator, RegressorMixin):
     """
 
     def __init__(self, base_gp, n_posterior_samples=25,
-                 n_burnin=500, n_sampling_steps=250):
+                 n_burnin=500, n_sampling_steps=250, n_jobs=1):
         self.base_gp = base_gp
         self.n_posterior_samples = n_posterior_samples
         self.n_burnin = n_burnin
         self.n_sampling_steps = n_sampling_steps
+        self.n_jobs = n_jobs
 
         self.gps = []
 
@@ -80,7 +81,8 @@ class BayesianGaussianProcess(BaseEstimator, RegressorMixin):
         # Initialize the MCMC sampling
         n_dim = len(self.base_gp.theta_)
         self.sampler = emcee.EnsembleSampler(nwalkers=2*n_dim, dim=n_dim,
-                                             lnpostfn=self.lnpostfn)
+                                             lnpostfn=self.lnpostfn,
+                                             threads=self.n_jobs)
 
         # Start ensemble walkers from perturbed ML estimate
         p0 = [self.base_gp.theta_ * (1 + np.random.randn(n_dim) * 2e-3 - 1e-3)
