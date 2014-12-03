@@ -797,7 +797,7 @@ class GaussianProcess(BaseEstimator, RegressorMixin):
             else:
                 raise ValueError("corr should be one of %s or callable, "
                                  "%s was given."
-                                 % (self.CORRELATION_TYPES.keys(), self.corr))
+                                 % (CORRELATION_TYPES.keys(), self.corr))
 
         # Check storage mode
         if self.storage_mode != 'full' and self.storage_mode != 'light':
