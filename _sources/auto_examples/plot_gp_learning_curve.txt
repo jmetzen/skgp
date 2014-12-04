@@ -1,0 +1,48 @@
+
+
+.. _example_plot_gp_learning_curve.py:
+
+
+==========================================================
+Comparing different variants of squared exponential kernel
+==========================================================
+
+Three variants of the squared exponential covariance function are compared:
+ * Isotropic squared exponential: a global length scale is learned from data.
+ * Automatic relevance determination (ARD): every dimension gets its own
+   characteristic length scale, irrelevant dimensions can be ignored if thetaL
+   is sufficiently small.
+ * Factor analysis distance (FAD): A low-rank approximation of a full
+   covariance matrix for the squared exponential kernel is learned.
+   Correlations between different dimensions can be identified and exploited
+   to some extent.
+
+The target function maps a 4-dimensional vector onto a real value. One of
+the dimensions is ignored (and should thus be pruned away by ARD). The other
+dimensions are correlated, which can be exploited by FAD.
+
+The hyperparameters are optimized within
+.. math::
+
+   \theta_i \in [1e-4, 1e2]
+
+See Rasmussen and Williams 2006, p107 for details regarding the different
+variants of the squared exponential kernel.
+
+
+
+
+.. image:: images/plot_gp_learning_curve_1.png
+    :align: center
+
+
+
+
+**Python source code:** :download:`plot_gp_learning_curve.py <plot_gp_learning_curve.py>`
+
+.. literalinclude:: plot_gp_learning_curve.py
+    :lines: 32-
+
+**Total running time of the example:**  45.17 seconds
+( 0 minutes  45.17 seconds)
+    

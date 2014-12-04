@@ -1,0 +1,192 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Correlation models &mdash; skgp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="skgp 0.1 documentation" href="index.html" />
+    <link rel="next" title="Examples" href="auto_examples/index.html" />
+    <link rel="prev" title="Features and Changes" href="features.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="auto_examples/index.html" title="Examples"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="features.html" title="Features and Changes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">skgp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="correlation-models">
+<span id="id1"></span><h1>Correlation models<a class="headerlink" href="#correlation-models" title="Permalink to this headline">¶</a></h1>
+<p>One of the main components of skgp is an extended set of correlation models (kernels). These extended correlation models are dicussed in the following.</p>
+<div class="section" id="distances">
+<h2>Distances<a class="headerlink" href="#distances" title="Permalink to this headline">¶</a></h2>
+<dl class="docutils">
+<dt>skgp ships different models of distance that can be learned from data and that can be used within most of the kernels. Three different distance models, which differ in the number of free parameters and thus their capacity to adapt to the data, are provided:</dt>
+<dd><ul class="first last simple">
+<li><em>Isotropic</em>: a global length scale is learned from data. This means only one parameter is learned but also that different length scales in the different dimensions of the data cannot be identified and exploited.</li>
+<li><em>Automatic relevance determination (ARD)</em>: every dimension gets its own
+characteristic length scale, irrelevant dimensions can be effectively pruned away. This is also called &#8220;anisotropic&#8221; distance. The number of parameters is equal to the dimensionality of the data.</li>
+<li><em>Factor analysis distance (FAD)</em>: A low-rank approximation of a full
+covariance matrix for the distance is learned. Correlations between different dimensions can be identified and exploited to some extent. The number of free parameters corresponds to the number of dimensions times the desired rank of the matrix.</li>
+</ul>
+</dd>
+</dl>
+<p>See Rasmussen and Williams 2006, p107 for details regarding the different
+variants. In an experiment, we compare the three distances when combined with the squared exponential kernel. The target function maps a 4-dimensional vector onto a real value. One of
+the dimensions is ignored (and should thus be pruned away by ARD). The other
+dimensions are correlated, which can be exploited by FAD. Learning curves for different distance models are shown in the following figure:</p>
+<div class="figure align-center">
+<a class="reference external image-reference" href="auto_examples/plot_gp_learning_curve.html"><img alt="_images/plot_gp_learning_curve_1.png" src="_images/plot_gp_learning_curve_1.png" /></a>
+</div>
+<p>As can be seen, in this example the more complex and flexible models perform considerably better. This need not always be the case as a more complex model might also overfit to the data at hand. However, if redundant or irrelevant dimensions are to be expected, a more adaptive distance measure typically pays off.</p>
+</div>
+<div class="section" id="matern-kernel">
+<h2>Matérn kernel<a class="headerlink" href="#matern-kernel" title="Permalink to this headline">¶</a></h2>
+<p>The class of <a class="reference external" href="http://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function">Matérn kernels</a> is a
+generalization of kernels like the squared or absolute exponential kernel. It
+has an additional parameter <img class="math" src="_images/math/d67fb61cfffca2cc069e083d76cb6220b4ca14c8.png" alt="\nu"/> which controls the smoothness of the
+Gaussian process resulting from this kernel: a Gaussian process with Matérn
+covariance has sample paths that are <img class="math" src="_images/math/f708dc1ab35f5a51adf2c4603a9d4fd0202fccca.png" alt="\lfloor \nu-1 \rfloor"/> times
+differentiable. The general functional form of a Matérn for distance <img class="math" src="_images/math/425d86ba2f2979d75b7535c2bcf92c33ed6b285a.png" alt="d"/>
+is given by:</p>
+<div class="math">
+<p><img src="_images/math/f6eeb2b151b48c4bd362cee55ab695dd8ef756c8.png" alt="C(d) = \sigma^2\frac{1}{\Gamma(\nu)2^{\nu-1}}\Bigg(\sqrt{2\nu}\frac{d}{\rho}\Bigg)^\nu K_\nu\Bigg(\sqrt{2\nu}\frac{d}{\rho}\Bigg),"/></p>
+</div><p>As <img class="math" src="_images/math/11043269a7ca08b4b35ee1336860ebb270d63935.png" alt="\nu\rightarrow\infty"/>, the Matérn kernel converges to the squared
+exponential kernel, i.e.,</p>
+<div class="math">
+<p><img src="_images/math/4ec6e13c3f4fa9266da42e67060a7ed2b972ac44.png" alt="C(d) = \sigma^2\exp(-d^2/ 2\rho^2)."/></p>
+</div><p>When <img class="math" src="_images/math/9a1d6636b59ea2018d263ead28f8f5775276a137.png" alt="\nu = 1/2"/>, the Matérn kernel becomes identical to the absolute
+exponential kernel, i.e.,</p>
+<div class="math">
+<p><img src="_images/math/96f48a9ee74f0401f98bd6ea6755a0441cd3e85b.png" alt="C(d) = \sigma^2 \exp \Bigg(-\frac{d}{\rho} \Bigg) \quad \quad \nu= \tfrac{1}{2}"/></p>
+</div><p>Further important special cases are</p>
+<div class="math">
+<p><img src="_images/math/c659e4b363279e5086dcfee7681d1282b3ca3038.png" alt="C(d) = \sigma^2 \Bigg(1 + \frac{ \sqrt{3}d }{\rho} \Bigg) \exp \Bigg(-\frac{\sqrt{3}d}{\rho} \Bigg) \quad \quad \nu= \tfrac{3}{2}"/></p>
+</div><p>and</p>
+<div class="math">
+<p><img src="_images/math/25ffcae1e57be59008e53de6d5941f06c4b836b7.png" alt="C(d) = \sigma^2 \Bigg(1 + \frac{ \sqrt{5}d }{\rho} +\frac{ 5d^2}{3 \rho^2 }   \Bigg) \exp \Bigg(-\frac{\sqrt{5}d}{\rho} \Bigg) \quad \quad \nu= \tfrac{5}{2}."/></p>
+</div><p>See Rasmussen and Williams 2006, pp84 for further details regarding the
+different variants of the Matérn kernel. In particular, <img class="math" src="_images/math/2233216d6a0d34d3337037715418882c19a6ee6b.png" alt="\nu = 3/2"/> and
+<img class="math" src="_images/math/dfcf1bba866007a44397980d99d5c69fbf9cf70e.png" alt="\nu = 5/2"/> are popular choices for learning functions that are not
+infinitely differentiable (as assumed by the squared exponential) but at least
+once (<img class="math" src="_images/math/2233216d6a0d34d3337037715418882c19a6ee6b.png" alt="\nu = 3/2"/>) or twice differentiable (<img class="math" src="_images/math/dfcf1bba866007a44397980d99d5c69fbf9cf70e.png" alt="\nu = 5/2"/>). This is a
+common case for real world data.</p>
+<p>The following graphic illustrates learning curves for different variants of the
+Matérn kernel. The target function is a twice differentiable function which is
+created by fitting a spline to randomly sampled data over the interval
+<img class="math" src="_images/math/e8caaed8bb84f4d75252dcb287e4f10a035b24bb.png" alt="[0, 10]"/>:</p>
+<div class="figure align-center">
+<a class="reference external image-reference" href="auto_examples/plot_matern_kernel.html"><img alt="_images/plot_matern_kernel_1.png" src="_images/plot_matern_kernel_1.png" /></a>
+</div>
+<p>As can be seen, neither the squared-exponential kernel (being too smooth) nor the absolute exponential kernel (being to rough) are good choices here. In contrast, the Matérn kernel with <img class="math" src="_images/math/dfcf1bba866007a44397980d99d5c69fbf9cf70e.png" alt="\nu = 5/2"/> (assuming correctly that the function is twice differentiable) performs considerably better. Also, the Matérn kernel with <img class="math" src="_images/math/2233216d6a0d34d3337037715418882c19a6ee6b.png" alt="\nu = 3/2"/> is only slightly worse.</p>
+</div>
+<div class="section" id="non-stationary-kernel">
+<h2>Non-stationary kernel<a class="headerlink" href="#non-stationary-kernel" title="Permalink to this headline">¶</a></h2>
+<div class="figure align-center">
+<a class="reference external image-reference" href="auto_examples/plot_gp_nonstationary.html"><img alt="_images/plot_gp_nonstationary_1.png" src="_images/plot_gp_nonstationary_1.png" /></a>
+</div>
+<div class="figure align-center">
+<a class="reference external image-reference" href="auto_examples/plot_gp_nonstationary.html"><img alt="_images/plot_gp_nonstationary_2.png" src="_images/plot_gp_nonstationary_2.png" /></a>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Correlation models</a><ul>
+<li><a class="reference internal" href="#distances">Distances</a></li>
+<li><a class="reference internal" href="#matern-kernel">Matérn kernel</a></li>
+<li><a class="reference internal" href="#non-stationary-kernel">Non-stationary kernel</a></li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="features.html"
+                        title="previous chapter">Features and Changes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="auto_examples/index.html"
+                        title="next chapter">Examples</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/correlation_models.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="auto_examples/index.html" title="Examples"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="features.html" title="Features and Changes"
+             >previous</a> |</li>
+        <li><a href="index.html">skgp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jan Hendrik Metzen.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

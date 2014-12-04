@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Comparing different variants of squared exponential kernel &mdash; skgp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="skgp 0.1 documentation" href="../index.html" />
+    <link rel="up" title="Examples" href="index.html" />
+    <link rel="next" title="Comparing Bayesian Inference and MAP estimation" href="plot_bayesian_gp.html" />
+    <link rel="prev" title="Examples" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="plot_bayesian_gp.html" title="Comparing Bayesian Inference and MAP estimation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Examples"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">skgp 0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Examples</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="comparing-different-variants-of-squared-exponential-kernel">
+<span id="example-plot-gp-learning-curve-py"></span><h1>Comparing different variants of squared exponential kernel<a class="headerlink" href="#comparing-different-variants-of-squared-exponential-kernel" title="Permalink to this headline">¶</a></h1>
+<dl class="docutils">
+<dt>Three variants of the squared exponential covariance function are compared:</dt>
+<dd><ul class="first last simple">
+<li>Isotropic squared exponential: a global length scale is learned from data.</li>
+<li>Automatic relevance determination (ARD): every dimension gets its own
+characteristic length scale, irrelevant dimensions can be ignored if thetaL
+is sufficiently small.</li>
+<li>Factor analysis distance (FAD): A low-rank approximation of a full
+covariance matrix for the squared exponential kernel is learned.
+Correlations between different dimensions can be identified and exploited
+to some extent.</li>
+</ul>
+</dd>
+</dl>
+<p>The target function maps a 4-dimensional vector onto a real value. One of
+the dimensions is ignored (and should thus be pruned away by ARD). The other
+dimensions are correlated, which can be exploited by FAD.</p>
+<p>The hyperparameters are optimized within
+.. math:</p>
+<div class="highlight-python"><div class="highlight"><pre>\theta_i \in [1e-4, 1e2]
+</pre></div>
+</div>
+<p>See Rasmussen and Williams 2006, p107 for details regarding the different
+variants of the squared exponential kernel.</p>
+<img alt="../_images/plot_gp_learning_curve_1.png" class="align-center" src="../_images/plot_gp_learning_curve_1.png" />
+<p><strong>Python source code:</strong> <a class="reference download internal" href="../_downloads/plot_gp_learning_curve.py"><tt class="xref download docutils literal"><span class="pre">plot_gp_learning_curve.py</span></tt></a></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="n">__doc__</span><span class="p">)</span>
+
+<span class="c"># Author: Jan Hendrik Metzen &lt;jhm@informatik.uni-bremen.de&gt;</span>
+<span class="c"># Licence: BSD 3 clause</span>
+
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
+
+<span class="kn">from</span> <span class="nn">sklearn.learning_curve</span> <span class="kn">import</span> <span class="n">learning_curve</span>
+<span class="kn">from</span> <span class="nn">skgp.estimators</span> <span class="kn">import</span> <span class="n">GaussianProcess</span>
+
+<a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.random.seed.html#numpy.random.seed"><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span></a><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Target function for GPR.</span>
+
+<span class="sd">    Note that one dimension (X[:, 3]) is irrelevant and should thus be ignored</span>
+<span class="sd">    by ARD. Furthermore, the values x in R^3 and</span>
+<span class="sd">    x + \alpha (1, 2 , 0) + \beta (1, 0, 2) have the same value for all x and</span>
+<span class="sd">    all alpha and beta. This can be exploited by FAD.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.tanh.html#numpy.tanh"><span class="n">np</span><span class="o">.</span><span class="n">tanh</span></a><span class="p">(</span><span class="mi">2</span> <span class="o">*</span> <span class="n">X</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">-</span> <span class="n">X</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]</span> <span class="o">-</span> <span class="n">X</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">])</span>
+
+<span class="n">Xtrain</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">((</span><span class="mi">200</span><span class="p">,</span> <span class="mi">4</span><span class="p">))</span> <span class="o">*</span> <span class="mi">2</span> <span class="o">-</span> <span class="mi">1</span>
+<span class="n">ytrain</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">Xtrain</span><span class="p">)</span>
+
+<a href="http://matplotlib.org/api/figure_api.html#matplotlib.figure"><span class="n">plt</span><span class="o">.</span><span class="n">figure</span></a><span class="p">()</span>
+<span class="n">colors</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;r&#39;</span><span class="p">,</span> <span class="s">&#39;g&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="s">&#39;c&#39;</span><span class="p">,</span> <span class="s">&#39;m&#39;</span><span class="p">]</span>
+<span class="n">labels</span> <span class="o">=</span> <span class="p">{</span><span class="mi">1</span><span class="p">:</span> <span class="s">&quot;Isotropic&quot;</span><span class="p">,</span> <span class="mi">4</span><span class="p">:</span> <span class="s">&quot;Automatic Relevance Determination&quot;</span><span class="p">,</span>
+          <span class="mi">8</span><span class="p">:</span> <span class="s">&quot;Factor Analysis&quot;</span><span class="p">}</span>
+<span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">labels</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+    <span class="n">train_sizes</span><span class="p">,</span> <span class="n">train_scores</span><span class="p">,</span> <span class="n">test_scores</span> <span class="o">=</span> \
+        <span class="n">learning_curve</span><span class="p">(</span><span class="n">GaussianProcess</span><span class="p">(</span><span class="n">corr</span><span class="o">=</span><span class="s">&#39;squared_exponential&#39;</span><span class="p">,</span>
+                                       <span class="n">theta0</span><span class="o">=</span><span class="p">[</span><span class="mf">1.0</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span><span class="p">,</span> <span class="n">thetaL</span><span class="o">=</span><span class="p">[</span><span class="mf">1e-4</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span><span class="p">,</span>
+                                       <span class="n">thetaU</span><span class="o">=</span><span class="p">[</span><span class="mf">1e2</span><span class="p">]</span> <span class="o">*</span> <span class="n">n</span><span class="p">),</span>
+                       <span class="n">Xtrain</span><span class="p">,</span> <span class="n">ytrain</span><span class="p">,</span> <span class="n">scoring</span><span class="o">=</span><span class="s">&quot;mean_squared_error&quot;</span><span class="p">,</span>
+                       <span class="n">cv</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">n_jobs</span><span class="o">=</span><span class="mi">4</span><span class="p">)</span>
+    <span class="n">test_scores</span> <span class="o">=</span> <span class="o">-</span><span class="n">test_scores</span>  <span class="c"># Scores correspond to negative MSE</span>
+    <span class="n">test_scores_mean</span> <span class="o">=</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.mean.html#numpy.mean"><span class="n">np</span><span class="o">.</span><span class="n">mean</span></a><span class="p">(</span><span class="n">test_scores</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">test_scores_min</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">test_scores</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">test_scores_max</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">test_scores</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+    <a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot"><span class="n">plt</span><span class="o">.</span><span class="n">plot</span></a><span class="p">(</span><span class="n">train_sizes</span><span class="p">,</span> <span class="n">test_scores_mean</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">labels</span><span class="p">[</span><span class="n">n</span><span class="p">],</span>
+             <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+    <a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.fill_between"><span class="n">plt</span><span class="o">.</span><span class="n">fill_between</span></a><span class="p">(</span><span class="n">train_sizes</span><span class="p">,</span> <span class="n">test_scores_min</span><span class="p">,</span> <span class="n">test_scores_max</span><span class="p">,</span>
+                     <span class="n">alpha</span><span class="o">=</span><span class="mf">0.2</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">colors</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+
+<a href="http://matplotlib.org/api/legend_api.html#matplotlib.legend"><span class="n">plt</span><span class="o">.</span><span class="n">legend</span></a><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s">&quot;best&quot;</span><span class="p">)</span>
+<a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.title"><span class="n">plt</span><span class="o">.</span><span class="n">title</span></a><span class="p">(</span><span class="s">&quot;Learning Curve&quot;</span><span class="p">)</span>
+<a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.xlabel"><span class="n">plt</span><span class="o">.</span><span class="n">xlabel</span></a><span class="p">(</span><span class="s">&quot;Training examples&quot;</span><span class="p">)</span>
+<a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.ylabel"><span class="n">plt</span><span class="o">.</span><span class="n">ylabel</span></a><span class="p">(</span><span class="s">&quot;Mean Squared Error&quot;</span><span class="p">)</span>
+<a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.yscale"><span class="n">plt</span><span class="o">.</span><span class="n">yscale</span></a><span class="p">(</span><span class="s">&quot;symlog&quot;</span><span class="p">,</span> <span class="n">linthreshy</span><span class="o">=</span><span class="mf">1e-10</span><span class="p">)</span>
+<a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.show"><span class="n">plt</span><span class="o">.</span><span class="n">show</span></a><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the example:</strong>  45.17 seconds
+( 0 minutes  45.17 seconds)</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Examples</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plot_bayesian_gp.html"
+                        title="next chapter">Comparing Bayesian Inference and MAP estimation</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/auto_examples/plot_gp_learning_curve.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="plot_bayesian_gp.html" title="Comparing Bayesian Inference and MAP estimation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Examples"
+             >previous</a> |</li>
+        <li><a href="../index.html">skgp 0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Examples</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jan Hendrik Metzen.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

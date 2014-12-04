@@ -1,0 +1,282 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Gaussian Processes regression: non-stationary correlation &mdash; skgp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="skgp 0.1 documentation" href="../index.html" />
+    <link rel="up" title="Examples" href="index.html" />
+    <link rel="prev" title="Gaussian Processes regression: comparing different variants of Matern kernel" href="plot_matern_kernel.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="plot_matern_kernel.html" title="Gaussian Processes regression: comparing different variants of Matern kernel"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">skgp 0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Examples</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="gaussian-processes-regression-non-stationary-correlation">
+<span id="example-plot-gp-nonstationary-py"></span><h1>Gaussian Processes regression: non-stationary correlation<a class="headerlink" href="#gaussian-processes-regression-non-stationary-correlation" title="Permalink to this headline">¶</a></h1>
+<p>A simple one-dimensional regression task which is complicated by a
+discontinuity at x=0. Because of this discontinuity, the global GP
+hyperparameters are chosen such that the correlation drops quickly with
+increasing distance of the datapoints. This is inappropriate for all pairs of
+datapoints which are not separated by the discontinuity.</p>
+<p>A non-stationary correlation model, which assigns shorter length-scales to
+regions close to the discontinuity can reduce this issue. In this script,
+a local length-scale model is provided and only a global modifier of the
+length scales is learned. This non-stationary model generalizes more globally
+and obtains a considerably higher posterior probability.</p>
+<ul class="horizontal">
+<li><a class="first reference internal image-reference" href="../_images/plot_gp_nonstationary_2.png"><img alt="../_images/plot_gp_nonstationary_2.png" src="../_images/plot_gp_nonstationary_2.png" style="width: 1551.0px; height: 1128.0px;" /></a>
+</li>
+<li><a class="first reference internal image-reference" href="../_images/plot_gp_nonstationary_1.png"><img alt="../_images/plot_gp_nonstationary_1.png" src="../_images/plot_gp_nonstationary_1.png" style="width: 1551.0px; height: 1128.0px;" /></a>
+</li>
+</ul>
+<p><strong>Script output</strong>:</p>
+<div class="highlight-python"><div class="highlight"><pre>Theta:
+      Stationary: 3.022        Non-stationary: 0.076
+Posterior probability (negative, average, log):
+      Stationary: 199.44188    Non-stationary: 278.92829
+</pre></div>
+</div>
+<p><strong>Python source code:</strong> <a class="reference download internal" href="../_downloads/plot_gp_nonstationary.py"><tt class="xref download docutils literal"><span class="pre">plot_gp_nonstationary.py</span></tt></a></p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">print</span><span class="p">(</span><span class="n">__doc__</span><span class="p">)</span>
+
+<span class="c"># Author: Jan Hendrik Metzen &lt;jhm@informatik.uni-bremen.de&gt;</span>
+<span class="c"># Licence: BSD 3 clause</span>
+
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">scipy.special</span> <span class="kn">import</span> <a href="http://docs.scipy.org/doc/scipy-0.11.0/reference/generated/scipy.special.gamma.html#scipy.special.gamma"><span class="n">gamma</span></a><span class="p">,</span> <a href="http://docs.scipy.org/doc/scipy-0.11.0/reference/generated/scipy.special.kv.html#scipy.special.kv"><span class="n">kv</span></a>
+<span class="kn">from</span> <span class="nn">skgp.estimators</span> <span class="kn">import</span> <span class="n">GaussianProcess</span>
+<span class="kn">from</span> <span class="nn">skgp.correlation_models.stationary</span> \
+    <span class="kn">import</span> <span class="n">MACHINE_EPSILON</span><span class="p">,</span> <span class="n">l1_cross_differences</span>
+<span class="kn">from</span> <span class="nn">matplotlib</span> <span class="kn">import</span> <span class="n">pyplot</span> <span class="k">as</span> <span class="n">pl</span>
+
+<a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.random.seed.html#numpy.random.seed"><span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">seed</span></a><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+
+<span class="k">def</span> <span class="nf">f</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;The function to predict.</span>
+
+<span class="sd">    The function has a discontinuity at x=0.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.where.html#numpy.where"><span class="n">np</span><span class="o">.</span><span class="n">where</span></a><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">,</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.sin.html#numpy.sin"><span class="n">np</span><span class="o">.</span><span class="n">sin</span></a><span class="p">(</span><span class="n">x</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]),</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.cos.html#numpy.cos"><span class="n">np</span><span class="o">.</span><span class="n">cos</span></a><span class="p">(</span><span class="o">-</span><span class="n">x</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]))</span> <span class="o">-</span> <span class="mi">2</span>
+
+
+<span class="c">#----------------------------------------------------------------------</span>
+<span class="c"># Correlation model</span>
+
+<span class="k">def</span> <span class="nf">length_scale</span><span class="p">(</span><span class="n">X</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Predetermined length-scales for the test problem.</span>
+
+<span class="sd">    Length-scales are smaller close to the discontinuity at x=0</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">return</span> <span class="mi">10</span><span class="o">**</span><a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.minimum.html#numpy.minimum"><span class="n">np</span><span class="o">.</span><span class="n">minimum</span></a><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">5</span> <span class="o">*</span> <span class="n">X</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">**</span> <span class="mi">2</span> <span class="o">-</span> <span class="mf">1.0</span><span class="p">)</span>
+
+
+<span class="k">class</span> <span class="nc">NonStationaryCorrelation</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot; Non-stationary correlation model with predetermined length-scales.&quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">fit</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">X</span><span class="p">,</span> <span class="n">nugget</span><span class="o">=</span><span class="mf">10.</span> <span class="o">*</span> <span class="n">MACHINE_EPSILON</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">X</span> <span class="o">=</span> <span class="n">X</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nugget</span> <span class="o">=</span> <span class="n">nugget</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+        <span class="c"># Calculate array with shape (n_eval, n_features) giving the</span>
+        <span class="c"># componentwise distances between locations x and x&#39; at which the</span>
+        <span class="c"># correlation model should be evaluated.</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">D</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">ij</span> <span class="o">=</span> <span class="n">l1_cross_differences</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+
+        <span class="c"># Calculate length scales</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">l_train</span> <span class="o">=</span> <span class="n">length_scale</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">,</span> <span class="n">X</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+        <span class="c"># Prepare distances and length scale information for any pair of</span>
+        <span class="c"># datapoints, whose correlation shall be computed</span>
+        <span class="k">if</span> <span class="n">X</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="c"># Get pairwise componentwise L1-differences to the input training</span>
+            <span class="c"># set</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">X</span><span class="p">[:,</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/arrays.indexing.html#numpy.newaxis"><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span></a><span class="p">,</span> <span class="p">:]</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">X</span><span class="p">[</span><a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/arrays.indexing.html#numpy.newaxis"><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span></a><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">X</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+            <span class="c"># Calculate length scales</span>
+            <span class="n">l_query</span> <span class="o">=</span> <span class="n">length_scale</span><span class="p">(</span><span class="n">X</span><span class="p">)</span>
+            <span class="n">l</span> <span class="o">=</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.transpose.html#numpy.transpose"><span class="n">np</span><span class="o">.</span><span class="n">transpose</span></a><span class="p">([</span><a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.tile.html#numpy.tile"><span class="n">np</span><span class="o">.</span><span class="n">tile</span></a><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">l_train</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">l_query</span><span class="p">)),</span>
+                              <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.repeat.html#numpy.repeat"><span class="n">np</span><span class="o">.</span><span class="n">repeat</span></a><span class="p">(</span><span class="n">l_query</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">l_train</span><span class="p">))])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c"># No external datapoints given; auto-correlation of training set</span>
+            <span class="c"># is used instead</span>
+            <span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">D</span>
+            <span class="n">l</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">l_train</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ij</span><span class="p">]</span>
+
+        <span class="c"># Compute general Matern kernel for nu=1.5</span>
+        <span class="n">nu</span> <span class="o">=</span> <span class="mf">1.5</span>
+        <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">ndim</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">theta</span><span class="o">.</span><span class="n">size</span> <span class="o">==</span> <span class="n">d</span><span class="o">.</span><span class="n">ndim</span><span class="p">:</span>
+            <span class="n">activation</span> <span class="o">=</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.sum.html#numpy.sum"><span class="n">np</span><span class="o">.</span><span class="n">sum</span></a><span class="p">(</span><span class="n">theta</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">d</span><span class="o">.</span><span class="n">ndim</span><span class="p">)</span> <span class="o">*</span> <span class="n">d</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">activation</span> <span class="o">=</span> <span class="n">theta</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">*</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.sum.html#numpy.sum"><span class="n">np</span><span class="o">.</span><span class="n">sum</span></a><span class="p">(</span><span class="n">d</span> <span class="o">**</span> <span class="mi">2</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">tmp</span> <span class="o">=</span> <span class="mf">0.5</span><span class="o">*</span><span class="p">(</span><span class="n">l</span><span class="o">**</span><span class="mi">2</span><span class="p">)</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">tmp2</span> <span class="o">=</span> <span class="mi">2</span><span class="o">*</span><a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.sqrt.html#numpy.sqrt"><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span></a><span class="p">(</span><span class="n">nu</span> <span class="o">*</span> <span class="n">activation</span> <span class="o">/</span> <span class="n">tmp</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">=</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.sqrt.html#numpy.sqrt"><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span></a><span class="p">(</span><span class="n">l</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">])</span> <span class="o">*</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.sqrt.html#numpy.sqrt"><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span></a><span class="p">(</span><span class="n">l</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">])</span> <span class="o">/</span> <span class="p">(</span><a href="http://docs.scipy.org/doc/scipy-0.11.0/reference/generated/scipy.special.gamma.html#scipy.special.gamma"><span class="n">gamma</span></a><span class="p">(</span><span class="n">nu</span><span class="p">)</span> <span class="o">*</span> <span class="mi">2</span><span class="o">**</span><span class="p">(</span><span class="n">nu</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+        <span class="n">r</span> <span class="o">/=</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.sqrt.html#numpy.sqrt"><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span></a><span class="p">(</span><span class="n">tmp</span><span class="p">)</span>
+        <span class="n">r</span> <span class="o">*=</span> <span class="n">tmp2</span><span class="o">**</span><span class="n">nu</span> <span class="o">*</span> <a href="http://docs.scipy.org/doc/scipy-0.11.0/reference/generated/scipy.special.kv.html#scipy.special.kv"><span class="n">kv</span></a><span class="p">(</span><span class="n">nu</span><span class="p">,</span> <span class="n">tmp2</span><span class="p">)</span>
+
+        <span class="c"># Convert correlations to 2d matrix</span>
+        <span class="k">if</span> <span class="n">X</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">r</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>  <span class="c"># exploit symmetry of auto-correlation</span>
+            <span class="n">R</span> <span class="o">=</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.eye.html#numpy.eye"><span class="n">np</span><span class="o">.</span><span class="n">eye</span></a><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">n_samples</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">nugget</span><span class="p">)</span>
+            <span class="n">R</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ij</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ij</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">r</span>
+            <span class="n">R</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">ij</span><span class="p">[:,</span> <span class="mi">1</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">ij</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">r</span>
+            <span class="k">return</span> <span class="n">R</span>
+
+    <span class="k">def</span> <span class="nf">log_prior</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">theta</span><span class="p">):</span>
+        <span class="c"># Just use a flat prior</span>
+        <span class="k">return</span> <span class="mi">0</span>
+
+<span class="c">#----------------------------------------------------------------------</span>
+<span class="c"># Actual test data</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">random</span><span class="o">.</span><span class="n">random</span><span class="p">(</span><span class="mi">50</span><span class="p">)[:,</span> <span class="bp">None</span><span class="p">]</span> <span class="o">*</span> <span class="mi">4</span> <span class="o">-</span> <span class="mi">2</span>
+
+<span class="c"># Observations</span>
+<span class="n">y</span> <span class="o">=</span> <span class="n">f</span><span class="p">(</span><span class="n">X</span><span class="p">)</span><span class="o">.</span><span class="n">ravel</span><span class="p">()</span>
+
+<span class="c"># Mesh the input space for evaluations of the real function, the prediction and</span>
+<span class="c"># its MSE</span>
+<span class="n">x</span> <span class="o">=</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.atleast_2d.html#numpy.atleast_2d"><span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span></a><span class="p">(</span><a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.linspace.html#numpy.linspace"><span class="n">np</span><span class="o">.</span><span class="n">linspace</span></a><span class="p">(</span><span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">1000</span><span class="p">))</span><span class="o">.</span><span class="n">T</span>
+
+<span class="c"># Instanciate one Gaussian Process model for the stationary Matern kernel and</span>
+<span class="c"># one for the non-stationary one</span>
+<span class="n">gp_stationary</span> <span class="o">=</span> \
+    <span class="n">GaussianProcess</span><span class="p">(</span><span class="n">corr</span><span class="o">=</span><span class="s">&#39;matern_1.5&#39;</span><span class="p">,</span> <span class="n">theta0</span><span class="o">=</span><span class="mf">1e0</span><span class="p">,</span> <span class="n">thetaL</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">thetaU</span><span class="o">=</span><span class="mf">1e+2</span><span class="p">,</span>
+                    <span class="n">random_start</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="n">gp_non_stationary</span> <span class="o">=</span> \
+    <span class="n">GaussianProcess</span><span class="p">(</span><span class="n">corr</span><span class="o">=</span><span class="n">NonStationaryCorrelation</span><span class="p">(),</span>
+                    <span class="n">theta0</span><span class="o">=</span><span class="mf">1e0</span><span class="p">,</span> <span class="n">thetaL</span><span class="o">=</span><span class="mf">1e-2</span><span class="p">,</span> <span class="n">thetaU</span><span class="o">=</span><span class="mf">1e+2</span><span class="p">,</span>
+                    <span class="n">random_start</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+
+<span class="c"># Fit to data using Maximum Likelihood Estimation of the parameters</span>
+<span class="n">gp_stationary</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="n">gp_non_stationary</span><span class="o">.</span><span class="n">fit</span><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;Theta:</span><span class="se">\n\t</span><span class="s">Stationary: {:.3f} </span><span class="se">\t</span><span class="s"> Non-stationary: {:.3f}&quot;</span>
+      <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">gp_stationary</span><span class="o">.</span><span class="n">theta_</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">gp_non_stationary</span><span class="o">.</span><span class="n">theta_</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+<span class="k">print</span><span class="p">(</span><span class="s">&quot;Posterior probability (negative, average, log):</span><span class="se">\n\t</span><span class="s">&quot;</span>
+      <span class="s">&quot;Stationary: {:.5f} </span><span class="se">\t</span><span class="s"> Non-stationary: {:.5f}&quot;</span>
+      <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">gp_stationary</span><span class="o">.</span><span class="n">posterior_function_value_</span><span class="p">,</span>
+              <span class="n">gp_non_stationary</span><span class="o">.</span><span class="n">posterior_function_value_</span><span class="p">))</span>
+
+<span class="c"># Plot predictions</span>
+<span class="k">for</span> <span class="n">title</span><span class="p">,</span> <span class="n">gp</span> <span class="ow">in</span> <span class="p">[(</span><span class="s">&quot;stationary&quot;</span><span class="p">,</span> <span class="n">gp_stationary</span><span class="p">),</span>
+                  <span class="p">(</span><span class="s">&quot;non-stationary&quot;</span><span class="p">,</span> <span class="n">gp_non_stationary</span><span class="p">)]:</span>
+    <span class="c"># Make the prediction on the meshed x-axis (ask for MSE as well)</span>
+    <span class="n">y_pred</span><span class="p">,</span> <span class="n">MSE</span> <span class="o">=</span> <span class="n">gp</span><span class="o">.</span><span class="n">predict</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">eval_MSE</span><span class="o">=</span><span class="bp">True</span><span class="p">)</span>
+    <span class="n">sigma</span> <span class="o">=</span> <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.sqrt.html#numpy.sqrt"><span class="n">np</span><span class="o">.</span><span class="n">sqrt</span></a><span class="p">(</span><span class="n">MSE</span><span class="p">)</span>
+
+    <span class="c"># Plot the function, the prediction and the 95% confidence interval</span>
+    <span class="c"># based on the MSE</span>
+    <span class="n">fig</span> <span class="o">=</span> <a href="http://matplotlib.org/api/figure_api.html#matplotlib.figure"><span class="n">pl</span><span class="o">.</span><span class="n">figure</span></a><span class="p">()</span>
+    <a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot"><span class="n">pl</span><span class="o">.</span><span class="n">plot</span></a><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="s">&#39;r:&#39;</span><span class="p">,</span>
+            <span class="n">label</span><span class="o">=</span><span class="s">u&#39;$f(x) = -2 + sin(x)$ if $x &gt; 0$ else $-2 + cos(-x)$&#39;</span><span class="p">)</span>
+    <a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot"><span class="n">pl</span><span class="o">.</span><span class="n">plot</span></a><span class="p">(</span><span class="n">X</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="s">&#39;r.&#39;</span><span class="p">,</span> <span class="n">markersize</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">u&#39;Observations&#39;</span><span class="p">)</span>
+    <a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot"><span class="n">pl</span><span class="o">.</span><span class="n">plot</span></a><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y_pred</span><span class="p">,</span> <span class="s">&#39;b-&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">u&#39;Prediction&#39;</span><span class="p">)</span>
+    <a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.fill"><span class="n">pl</span><span class="o">.</span><span class="n">fill</span></a><span class="p">(</span><a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.concatenate.html#numpy.concatenate"><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span></a><span class="p">([</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]),</span>
+            <a href="http://docs.scipy.org/doc/numpy-1.6.0/reference/generated/numpy.concatenate.html#numpy.concatenate"><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span></a><span class="p">([</span><span class="n">y_pred</span> <span class="o">-</span> <span class="mf">1.9600</span> <span class="o">*</span> <span class="n">sigma</span><span class="p">,</span>
+                           <span class="p">(</span><span class="n">y_pred</span> <span class="o">+</span> <span class="mf">1.9600</span> <span class="o">*</span> <span class="n">sigma</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]]),</span>
+            <span class="n">alpha</span><span class="o">=.</span><span class="mi">5</span><span class="p">,</span> <span class="n">fc</span><span class="o">=</span><span class="s">&#39;b&#39;</span><span class="p">,</span> <span class="n">ec</span><span class="o">=</span><span class="s">&#39;None&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s">&#39;95</span><span class="si">% c</span><span class="s">onfidence interval&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">gp</span> <span class="o">==</span> <span class="n">gp_non_stationary</span><span class="p">:</span>
+        <a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.plot"><span class="n">pl</span><span class="o">.</span><span class="n">plot</span></a><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">length_scale</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="n">label</span><span class="o">=</span><span class="s">&quot;Length scales&quot;</span><span class="p">)</span>
+    <a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.xlabel"><span class="n">pl</span><span class="o">.</span><span class="n">xlabel</span></a><span class="p">(</span><span class="s">&#39;$x$&#39;</span><span class="p">)</span>
+    <a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.ylabel"><span class="n">pl</span><span class="o">.</span><span class="n">ylabel</span></a><span class="p">(</span><span class="s">&#39;$f(x)$&#39;</span><span class="p">)</span>
+    <a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.ylim"><span class="n">pl</span><span class="o">.</span><span class="n">ylim</span></a><span class="p">(</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="mi">5</span><span class="p">)</span>
+    <a href="http://matplotlib.org/api/legend_api.html#matplotlib.legend"><span class="n">pl</span><span class="o">.</span><span class="n">legend</span></a><span class="p">(</span><span class="n">loc</span><span class="o">=</span><span class="s">&#39;upper left&#39;</span><span class="p">)</span>
+    <a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.title"><span class="n">pl</span><span class="o">.</span><span class="n">title</span></a><span class="p">(</span><span class="n">title</span><span class="p">)</span>
+
+<a href="http://matplotlib.org/api/pyplot_api.html#matplotlib.pyplot.show"><span class="n">pl</span><span class="o">.</span><span class="n">show</span></a><span class="p">()</span>
+</pre></div>
+</div>
+<p><strong>Total running time of the example:</strong>  4.43 seconds
+( 0 minutes  4.43 seconds)</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="plot_matern_kernel.html"
+                        title="previous chapter">Gaussian Processes regression: comparing different variants of Matern kernel</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/auto_examples/plot_gp_nonstationary.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="plot_matern_kernel.html" title="Gaussian Processes regression: comparing different variants of Matern kernel"
+             >previous</a> |</li>
+        <li><a href="../index.html">skgp 0.1 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Examples</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jan Hendrik Metzen.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

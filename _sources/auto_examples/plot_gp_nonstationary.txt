@@ -1,0 +1,54 @@
+
+
+.. _example_plot_gp_nonstationary.py:
+
+
+=========================================================
+Gaussian Processes regression: non-stationary correlation
+=========================================================
+
+A simple one-dimensional regression task which is complicated by a
+discontinuity at x=0. Because of this discontinuity, the global GP
+hyperparameters are chosen such that the correlation drops quickly with
+increasing distance of the datapoints. This is inappropriate for all pairs of
+datapoints which are not separated by the discontinuity.
+
+A non-stationary correlation model, which assigns shorter length-scales to
+regions close to the discontinuity can reduce this issue. In this script,
+a local length-scale model is provided and only a global modifier of the
+length scales is learned. This non-stationary model generalizes more globally
+and obtains a considerably higher posterior probability.
+
+
+
+.. rst-class:: horizontal
+
+
+    *
+
+      .. image:: images/plot_gp_nonstationary_2.png
+            :scale: 47
+
+    *
+
+      .. image:: images/plot_gp_nonstationary_1.png
+            :scale: 47
+
+
+**Script output**::
+
+  Theta:
+  	Stationary: 3.022 	 Non-stationary: 0.076
+  Posterior probability (negative, average, log):
+  	Stationary: 199.44188 	 Non-stationary: 278.92829
+
+
+
+**Python source code:** :download:`plot_gp_nonstationary.py <plot_gp_nonstationary.py>`
+
+.. literalinclude:: plot_gp_nonstationary.py
+    :lines: 21-
+
+**Total running time of the example:**  4.43 seconds
+( 0 minutes  4.43 seconds)
+    

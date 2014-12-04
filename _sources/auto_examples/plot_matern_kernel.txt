@@ -1,0 +1,45 @@
+
+
+.. _example_plot_matern_kernel.py:
+
+
+============================================================================
+Gaussian Processes regression: comparing different variants of Matern kernel
+============================================================================
+
+Gaussian Process regression with four different variants of the Matern kernel
+is compared (for activ=dx.T * M * dx and M being a covariance matrix of size
+n*n encoded in theta):
+ * The Matern kernel for nu=1.5:
+   r(theta, dx) = (1 + np.sqrt(3*activ))*exp(-np.sqrt(3*activ))
+ * The Matern kernel for nu=2.5:
+   r(theta, dx) = (1 + np.sqrt(5*activ) + 5/3*activ)*exp(-np.sqrt(5*activ))
+ * The absolute-exponential kernel which corresponds to a Matern kernel
+   with nu=0.5
+ * The squared-exponential kernel which corresponds to a Matern kernel
+   for the limit of nu becoming infinitely large
+
+The target function is a twice differentiable function which is created by
+fitting a spline to randomly sampled data over the interval [0, 10]. The
+squared-exponential kernel is expected to be too smooth for this function
+while the absolute-exponential kernel is typically too rough.
+
+See Rasmussen and Williams 2006, pp84 for details regarding the different
+variants of the Matern kernel.
+
+
+
+.. image:: images/plot_matern_kernel_1.png
+    :align: center
+
+
+
+
+**Python source code:** :download:`plot_matern_kernel.py <plot_matern_kernel.py>`
+
+.. literalinclude:: plot_matern_kernel.py
+    :lines: 29-
+
+**Total running time of the example:**  3.32 seconds
+( 0 minutes  3.32 seconds)
+    

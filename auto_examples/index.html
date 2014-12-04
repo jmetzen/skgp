@@ -1,0 +1,275 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Examples &mdash; skgp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="skgp 0.1 documentation" href="../index.html" />
+    <link rel="next" title="Comparing different variants of squared exponential kernel" href="plot_gp_learning_curve.html" />
+    <link rel="prev" title="Correlation models" href="../correlation_models.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="plot_gp_learning_curve.html" title="Comparing different variants of squared exponential kernel"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="../correlation_models.html" title="Correlation models"
+             accesskey="P">previous</a> |</li>
+        <li><a href="../index.html">skgp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <style type="text/css">
+
+div#sidebarbutton {
+    display: none;
+}
+
+.figure {
+    float: left;
+    margin: 10px;
+    -webkit-border-radius: 10px; /* Saf3-4, iOS 1-3.2, Android <1.6 */
+    -moz-border-radius: 10px; /* FF1-3.6 */
+    border-radius: 10px; /* Opera 10.5, IE9, Saf5, Chrome, FF4, iOS 4, Android 2.1+ */
+    border: 2px solid #fff;
+    background-color: white;
+    /* --> Thumbnail image size */
+    width: 150px;
+    height: 100px;
+    -webkit-background-size: 150px 100px; /* Saf3-4 */
+    -moz-background-size: 150px 100px; /* FF3.6 */
+}
+
+.figure img {
+    display: inline;
+}
+
+div.docstringWrapper p.caption {
+    display: block;
+    -webkit-box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.0);
+    -moz-box-shadow: 0px 0px 20px rgba(0, 0, 0, .0); /* FF3.5 - 3.6 */
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.0); /* Opera 10.5, IE9, FF4+, Chrome 10+ */
+    padding: 0px;
+    border: white;
+}
+
+div.docstringWrapper p {
+    display: none;
+    background-color: white;
+    -webkit-box-shadow: 0px 0px 20px rgba(0, 0, 0, 1.00);
+    -moz-box-shadow: 0px 0px 20px rgba(0, 0, 0, 1.00); /* FF3.5 - 3.6 */
+    box-shadow: 0px 0px 20px rgba(0, 0, 0, 1.00); /* Opera 10.5, IE9, FF4+, Chrome 10+ */
+    padding: 13px;
+    margin-top: 0px;
+    border-style: solid;
+    border-width: 1px;
+}
+
+
+</style><script type="text/javascript">
+
+function animateClone(e){
+  var position;
+  position = $(this).position();
+  var clone = $(this).closest('.thumbnailContainer').find('.clonedItem');
+  var clone_fig = clone.find('.figure');
+  clone.css("left", position.left - 70).css("top", position.top - 70).css("position", "absolute").css("z-index", 1000).css("background-color", "white");
+
+  var cloneImg = clone_fig.find('img');
+
+  clone.show();
+  clone.animate({
+        height: "270px",
+        width: "320px"
+    }, 0
+  );
+  cloneImg.css({
+        'max-height': "200px",
+        'max-width': "280px"
+  });
+  cloneImg.animate({
+        height: "200px",
+        width: "280px"
+    }, 0
+   );
+  clone_fig.css({
+       'margin-top': '20px',
+  });
+  clone_fig.show();
+  clone.find('p').css("display", "block");
+  clone_fig.css({
+       height: "240",
+       width: "305px"
+  });
+  cloneP_height = clone.find('p.caption').height();
+  clone_fig.animate({
+       height: (200 + cloneP_height)
+   }, 0
+  );
+
+  clone.bind("mouseleave", function(e){
+      clone.animate({
+          height: "100px",
+          width: "150px"
+      }, 10, function(){$(this).hide();});
+      clone_fig.animate({
+          height: "100px",
+          width: "150px"
+      }, 10, function(){$(this).hide();});
+  });
+} //end animateClone()
+
+
+$(window).load(function () {
+    $(".figure").css("z-index", 1);
+
+    $(".docstringWrapper").each(function(i, obj){
+        var clone;
+        var $obj = $(obj);
+        clone = $obj.clone();
+        clone.addClass("clonedItem");
+        clone.appendTo($obj.closest(".thumbnailContainer"));
+        clone.hide();
+        $obj.bind("mouseenter", animateClone);
+    }); // end each
+}); // end
+
+</script><div class="section" id="examples">
+<h1>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="general-examples">
+<span id="examples-index"></span><span id="id1"></span><h2>General examples<a class="headerlink" href="#general-examples" title="Permalink to this headline">¶</a></h2>
+<p>General-purpose and introductory examples for the skgp.</p>
+<div class="thumbnailContainer">
+    <div class="docstringWrapper"><div class="figure">
+<a class="reference external image-reference" href="./plot_gp_learning_curve.html"><img alt="../_images/plot_gp_learning_curve.png" src="../_images/plot_gp_learning_curve.png" /></a>
+<p class="caption"><a class="reference internal" href="plot_gp_learning_curve.html#example-plot-gp-learning-curve-py"><em>Comparing different variants of squared exponential kernel</em></a></p>
+</div>
+<p>Three variants of the squared exponential covariance function are compared:  * Isotropic square...
+</p></div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="thumbnailContainer">
+    <div class="docstringWrapper"><div class="figure">
+<a class="reference external image-reference" href="./plot_bayesian_gp.html"><img alt="../_images/plot_bayesian_gp.png" src="../_images/plot_bayesian_gp.png" /></a>
+<p class="caption"><a class="reference internal" href="plot_bayesian_gp.html#example-plot-bayesian-gp-py"><em>Comparing Bayesian Inference and MAP estimation</em></a></p>
+</div>
+<p>
+</p></div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="thumbnailContainer">
+    <div class="docstringWrapper"><div class="figure">
+<a class="reference external image-reference" href="./plot_matern_kernel.html"><img alt="../_images/plot_matern_kernel.png" src="../_images/plot_matern_kernel.png" /></a>
+<p class="caption"><a class="reference internal" href="plot_matern_kernel.html#example-plot-matern-kernel-py"><em>Gaussian Processes regression: comparing different variants of Matern kernel</em></a></p>
+</div>
+<p>Gaussian Process regression with four different variants of the Matern kernel is compared (for ...
+</p></div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div class="thumbnailContainer">
+    <div class="docstringWrapper"><div class="figure">
+<a class="reference external image-reference" href="./plot_gp_nonstationary.html"><img alt="../_images/plot_gp_nonstationary.png" src="../_images/plot_gp_nonstationary.png" /></a>
+<p class="caption"><a class="reference internal" href="plot_gp_nonstationary.html#example-plot-gp-nonstationary-py"><em>Gaussian Processes regression: non-stationary correlation</em></a></p>
+</div>
+<p>A simple one-dimensional regression task which is complicated by a discontinuity at x=0. Becaus...
+</p></div>
+</div><div class="toctree-wrapper compound">
+</div>
+<div style="clear: both"></div></div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="../index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Examples</a><ul>
+<li><a class="reference internal" href="#general-examples">General examples</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="../correlation_models.html"
+                        title="previous chapter">Correlation models</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="plot_gp_learning_curve.html"
+                        title="next chapter">Comparing different variants of squared exponential kernel</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="../_sources/auto_examples/index.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="plot_gp_learning_curve.html" title="Comparing different variants of squared exponential kernel"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="../correlation_models.html" title="Correlation models"
+             >previous</a> |</li>
+        <li><a href="../index.html">skgp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jan Hendrik Metzen.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

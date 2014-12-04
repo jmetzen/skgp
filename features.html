@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Features and Changes &mdash; skgp 0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="skgp 0.1 documentation" href="index.html" />
+    <link rel="next" title="Examples" href="auto_examples/index.html" />
+    <link rel="prev" title="Welcome to skgp’s documentation!" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="auto_examples/index.html" title="Examples"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to skgp’s documentation!"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">skgp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="features-and-changes">
+<h1>Features and Changes<a class="headerlink" href="#features-and-changes" title="Permalink to this headline">¶</a></h1>
+<p>skgp&#8217;s main features/changes compared to the standard GPs from sklearn are the following:</p>
+<p>CHANGES:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Correlation models are now classes instead of functions and inherit from abstract base class StationaryCorrelation. This reduces code-redundancy (DRY) and separates GPs and their correlation models more strictly. Moreover, non-stationary correlation models become possible (see examples/plot_gp_nonstationary.py) This was not possible formerly since only the differences of the datapoints were passed to the correlation models but not the datapoints themselves.</li>
+<li>The hyperparameters theta are estimated as maximum-a-posterior estimates rather than maximum-likelihood estimates. At the moment, the prior on the hyperparameters theta is uniform such that both result in the same value. However, a non-uniform prior could be used in the future in cases where the risk of overfitting theta to the data is serious (e.g., forcing the factor analysis distance to be close to diagonal etc.)</li>
+</ul>
+</div></blockquote>
+<p>NEW FEATURES:</p>
+<blockquote>
+<div><ul class="simple">
+<li>Matern correlation models for nu=1.5 and nu=2.5 have been added (see <a class="reference external" href="https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function">https://en.wikipedia.org/wiki/Mat%C3%A9rn_covariance_function</a>). An example script showing the potential benefit of the Matern correlation model compared to squared-exponential and absolute-exponential was added under examples/gaussian_process/plot_matern_kernel.py (see attached image)</li>
+<li>squared_exponential, absolute_exponential and Matern correlation models support factor analysis distance. This can be seen as an extension of learning dimension-specific length scales in which also correlations of feature dimensions can be taken into account. See Rasmussen and Williams 2006, p107 for details. An example script showing the potential benefit of this extension was added under examples/gaussian_process/plot_gp_learning_curve.py (see attached image).</li>
+<li>GP supports additional optimizers for ML estimation passed as callables. In addition to &#8216;fmin_cobyla&#8217; and &#8216;Welch&#8217;, GaussianProcess allows now to pass other optimizers directly as callables via the parameter optimizer.</li>
+<li>BayesianGaussianProcess which performs Bayesian inference of the hyperparameters using MCMC sampling based on the emcee package rather than employing ML or MAP point estimates.</li>
+<li>Non-stationary correlation models where the non-stationarity is learned from the data.</li>
+</ul>
+</div></blockquote>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="index.html"
+                        title="previous chapter">Welcome to skgp&#8217;s documentation!</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="auto_examples/index.html"
+                        title="next chapter">Examples</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/features.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="auto_examples/index.html" title="Examples"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="index.html" title="Welcome to skgp’s documentation!"
+             >previous</a> |</li>
+        <li><a href="index.html">skgp 0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2014, Jan Hendrik Metzen.
+      Created using <a href="http://sphinx-doc.org/">Sphinx</a> 1.2.2.
+    </div>
+  </body>
+</html>

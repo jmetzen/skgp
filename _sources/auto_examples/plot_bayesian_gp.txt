@@ -1,0 +1,26 @@
+
+
+.. _example_plot_bayesian_gp.py:
+
+
+==========================================================
+Comparing Bayesian Inference and MAP estimation
+==========================================================
+
+
+
+
+.. image:: images/plot_bayesian_gp_1.png
+    :align: center
+
+
+
+
+**Python source code:** :download:`plot_bayesian_gp.py <plot_bayesian_gp.py>`
+
+.. literalinclude:: plot_bayesian_gp.py
+    :lines: 10-
+
+**Total running time of the example:**  343.81 seconds
+( 5 minutes  43.81 seconds)
+    
