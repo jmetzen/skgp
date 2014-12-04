@@ -7,7 +7,7 @@ Comparing different variants of squared exponential kernel
 ==========================================================
 
 Three variants of the squared exponential covariance function are compared:
- * Isotropic squared exponential: a global length scale is learn from data.
+ * Isotropic squared exponential: a global length scale is learned from data.
  * Automatic relevance determination (ARD): every dimension gets its own
    characteristic length scale, irrelevant dimensions can be ignored if thetaL
    is sufficiently small.

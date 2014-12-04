@@ -14,6 +14,7 @@ Contents:
 .. toctree::
 
     features
+    correlation_models
     auto_examples/index
 
 
