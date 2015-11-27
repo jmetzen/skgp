@@ -1,5 +1,7 @@
 .. -*- mode: rst -*-
 
+NOTE: skgp is deprecated since Gaussian processes have been competely redesigned in scikit-learn's current master and  in all releases starting from 0.18.
+
 skgp
 ====
 
